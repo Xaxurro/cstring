@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define VSTRING_EMPTY			(vstring) { .data = "", .size = 0 }
+#define BSTRING_EMPTY			(bstring) { .data = "", .size = 0 }
 #define CSTRING_ERROR_NOT_FOUND		((size_t) - 1)
 #define CSTRING_ERROR_NOT_ENOUGH_SPACE	1
 
@@ -192,19 +193,21 @@ static inline size_t vstring_find_first(vstring* str, vstring* search) {
 	return CSTRING_ERROR_NOT_FOUND;
 }
 
-//@func bstring_from
-//@desc preffered method to init `bstring`
-//@return new `bstring` struct
-static inline bstring bstring_from(const char* str) {
-	bstring builder = { .size = strlen(str) };
-	strncat(builder.data, str, builder.size);
-	return builder;
-}
-
 //@func bstring_is_full
 //@return if `size` *would* overflow the `CSTRING_BSTRING_SIZE` constant
 static inline bool bstring_is_full(const size_t size) {
 	return size >= CSTRING_BSTRING_SIZE;
+}
+
+
+//@func bstring_from
+//@desc preffered method to init `bstring`
+//@return new `bstring` struct
+static inline bstring bstring_from(const char* str) {
+	if (bstring_is_full(strlen(str))) return BSTRING_EMPTY;
+	bstring builder = { .size = strlen(str) };
+	strncat(builder.data, str, builder.size);
+	return builder;
 }
 
 //@func bstring_concat
