@@ -28,6 +28,7 @@ typedef struct {
 //@type HELPER
 //@desc takes char* string and transforms it into a `vstring`
 static inline vstring vstring_from(const char* str) {
+	if (str == NULL) return VSTRING_EMPTY;
 	return (vstring) {
 		.data = str,
 		.size = strlen(str),
@@ -41,6 +42,9 @@ static inline vstring vstring_from(const char* str) {
 //@return 1 `a` is larger
 //@return 2 `b` is larger
 static inline size_t vstring_compare(const vstring* a, const vstring* b) {
+	if (a == NULL && b == NULL) return 0;
+	if (b == NULL) return 1;
+	if (a == NULL) return 2;
 	if (a->size != b->size)
 		return a->size > b->size ? 1 : 2;
 	for (size_t i = 0; i < a->size; i++)
@@ -53,6 +57,8 @@ static inline size_t vstring_compare(const vstring* a, const vstring* b) {
 //@type HELPER
 //@desc compares if `str` and `cstr` are exactly equal
 static inline bool vstring_equals(const vstring* str, const char* cstr) {
+	if (str == NULL && (cstr == NULL || cstr[0] == '\0')) return true;
+	if (str == NULL || (cstr == NULL || cstr[0] == '\0')) return false;
 	if (str->size != strlen(cstr)) return false;
 	for (size_t i = 0; i < str->size; i++)
 		if (cstr[i] != str->data[i]) return false;
@@ -63,57 +69,82 @@ static inline bool vstring_equals(const vstring* str, const char* cstr) {
 //@type HELPER
 //@return character in `str` at position `i`
 static inline char vstring_get_char(const vstring* str, const size_t i) {
+	if (str == NULL) return '\0';
 	if (i >= str->size) return '\0';
 	return str->data[i];
-}
-
-//@func vstring_remove_right
-//@description removes `size` characters from the right of `str`, if can't trim it does nothing
-static inline void vstring_remove_right(vstring* str, size_t size) {
-	if (size > str->size) size = str->size;
-	if (str->size == 0) return;
-	str->size -= size;
 }
 
 //@func vstring_remove_left
 //@description removes `size` characters from the left of `str`, if can't trim it does nothing
 static inline void vstring_remove_left(vstring* str, size_t size) {
+	if (str == NULL) return;
 	if (size > str->size) size = str->size;
 	if (str->size == 0) return;
 	str->size -= size;
 	str->data += size;
 }
 
-//@func vstring_copy_right
-//@description creates a copy with `size` characters from the right of `str`
-static inline vstring vstring_copy_right(vstring* str, size_t size) {
+//@func vstring_remove_right
+//@description removes `size` characters from the right of `str`, if can't trim it does nothing
+static inline void vstring_remove_right(vstring* str, size_t size) {
+	if (str == NULL) return;
 	if (size > str->size) size = str->size;
-	if (str->size == 0 || str->size - size == 0) return VSTRING_EMPTY;
+	if (str->size == 0) return;
+	str->size -= size;
+}
+
+//@func vstring_duplicate
+//@description creates a copy with `size` characters from the right of `str`
+static inline vstring vstring_duplicate(vstring* str) {
+	if (str == NULL) return VSTRING_EMPTY;
+	if (str->size == 0) return VSTRING_EMPTY;
+	char new_str[str->size];
+	strncpy(new_str, str->data, str->size);
 	return (vstring) {
-		.data = str->data,
-		.size = str->size - size
+		.data = new_str,
+		.size = str->size
 	};
 }
 
 //@func vstring_copy_left
 //@description creates a copy with `size` characters from the left of `str`
 static inline vstring vstring_copy_left(vstring* str, size_t size) {
+	if (str == NULL) return VSTRING_EMPTY;
 	if (size > str->size) size = str->size;
-	if (str->size == 0 || str->size - size == 0) return VSTRING_EMPTY;
+	if (str->size == 0 || size == 0) return VSTRING_EMPTY;
+	char new_str[str->size];
+	strncpy(new_str, str->data, str->size);
 	return (vstring) {
-		.data = str->data + size,
+		.data = new_str,
+		.size = size
+	};
+}
+
+//@func vstring_copy_right
+//@description creates a copy with `size` characters from the right of `str`
+static inline vstring vstring_copy_right(vstring* str, size_t size) {
+	if (str == NULL) return VSTRING_EMPTY;
+	if (size > str->size) size = str->size;
+	if (str->size == 0 || size == 0) return VSTRING_EMPTY;
+	char new_str[str->size];
+	strncpy(new_str, str->data + str->size - size, str->size);
+	return (vstring) {
+		.data = new_str,
 		.size = size
 	};
 }
 
 //@func vstring_copy_left
-//@description creates a copy with `size` characters from the `start` of `str`
+//@description creates a copy of `str` with `size` characters after `start` characters (exclusive)
 //@return `VSTRING_EMPTY` `str->size` or `size` == 0, also if `start` == `str->size`
 static inline vstring vstring_copy_after(vstring* str, size_t start, size_t size) {
-	if (str->size == 0 || size == 0 || start == str->size) return VSTRING_EMPTY;
-	if (start + size >= str->size) size = str->size - start;
+	if (str == NULL) return VSTRING_EMPTY;
+	if (str->size == 0 || size == 0 || start >= str->size) return VSTRING_EMPTY;
+	if (start + size > str->size) size = str->size - start;
+	char new_str[str->size];
+	strncpy(new_str, str->data + start, size);
 	return (vstring) {
-		.data = str->data + start,
+		.data = new_str,
 		.size = size
 	};
 }

@@ -1,8 +1,8 @@
 #define NOB_IMPLEMENTATION
+#define NOB_NO_ECHO
+
 #include "nob.h"
 #include "cstring.h"
-
-#define NOB_NO_ECHO
 
 #define BUILD_DIR "build/"
 #define TESTS_DIR "tests/"
@@ -45,6 +45,8 @@ char build_tests() {
 		vstring_remove_right(&path, 2);
 		bstring_concat(&build_path, &path);
 
+		printf("\nbuilding %s at %s", full_path.data, build_path.data);
+
 		nob_cmd_append(&cmd, "clang", "-std=c23", "-Wall", "-Wextra", "-o", build_path.data, full_path.data);
 		if (!nob_cmd_run(&cmd)) return 1;
 	}
@@ -80,6 +82,8 @@ char run_tests() {
 		bstring build_path = bstring_from(BUILD_DIR VSTRING);
 		bstring_concat(&build_path, &path);
 
+		printf("\nrunning %s", build_path.data);
+
 		nob_cmd_append(&cmd, build_path.data);
 		if (!nob_cmd_run(&cmd)) return 1;
 	}
@@ -94,11 +98,13 @@ char scratchpad() {
 	return 0;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	NOB_GO_REBUILD_URSELF(argc, argv);
 	if (!nob_mkdir_if_not_exists(BUILD_DIR)) return 1;
+	printf("\n---Building Tests---");
 	build_tests();
+	printf("\n");
+	printf("\n---Running Tests---");
 	run_tests();
 	//scratchpad();
 	return 0;

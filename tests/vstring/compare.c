@@ -1,30 +1,28 @@
 #include "../../cstring.h"
-#include <stdio.h>
-
-bool check(int expected[], int output[], size_t size) {
-	bool result = true;
-	for (size_t i = 0; i < size; i++)
-		if (expected[i] != output[i]) {
-			printf("Error at output %zu:\n\tExpected:\t%d\n\tOutput:\t\t%d\n\n", i, expected[i], output[i]);
-			result = false;
-			
-		}
-	return result;
-}
+#include <assert.h>
 
 int main(void) {
-	const size_t size = 3;
-	int expected[] = {0, 1, 3};
-	int output[size];
-
 	vstring a = vstring_from("hello");
 	vstring b = vstring_from("hello");
-	output[0] = vstring_compare(&a, &b);
 
+	//Completly equal
+	assert(vstring_compare(&a, &b) == 0);
+
+	//Larger `a`, `b` has lower size
 	b.size = 4;
-	output[1] = vstring_compare(&a, &b);
+	assert(vstring_compare(&a, &b) == 1);
 
+	//Larger `b`, `b[0]` > `a[0]`
 	vstring_remove_left(&a, 1);
-	output[2] = vstring_compare(&a, &b);
-	check(expected, output, size);
+	assert(vstring_compare(&a, &b) == 2);
+
+	//Larger `b`, `a` has lower size
+	a = vstring_from("abc\0def");
+	b = vstring_from("abcdef");
+	assert(vstring_compare(&a, &b) == 2);
+
+	//NULL
+	assert(vstring_compare(NULL, NULL) == 0);
+	assert(vstring_compare(&a, NULL) == 1);
+	assert(vstring_compare(NULL, &b) == 2);
 }
